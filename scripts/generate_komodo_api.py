@@ -46,6 +46,13 @@ def copy_generated_api(repo_dir: Path, generated_api_path: str, output_path: Pat
     shutil.copytree(source_path, output_path)
 
 
+def process_repo(repo_dir: Path, repo_url: str, tag: str, patch_dir: Path, generate_command: str, generated_api_path: str, output_path: Path) -> None:
+    clone_repo(repo_url, tag, repo_dir)
+    apply_patches(repo_dir, patch_dir)
+    generate_api(repo_dir, generate_command)
+    copy_generated_api(repo_dir, generated_api_path, output_path)
+
+
 def write_generation_metadata(output_path: Path, tag: str, repo_url: str) -> None:
     metadata_file = output_path / "_generated_from.py"
     generated_at = datetime.now(timezone.utc).isoformat()
@@ -112,17 +119,11 @@ def main() -> None:
         if repo_dir.exists():
             shutil.rmtree(repo_dir)
 
-        clone_repo(args.repo_url, args.tag, repo_dir)
-        apply_patches(repo_dir, patch_dir)
-        generate_api(repo_dir, args.generate_command)
-        copy_generated_api(repo_dir, args.generated_api_path, output_path)
+        process_repo(repo_dir, args.repo_url, args.tag, patch_dir, args.generate_command, args.generated_api_path, output_path)
     else:
         with tempfile.TemporaryDirectory(prefix="komodo-api-") as temp_dir:
             repo_dir = Path(temp_dir) / "komodo"
-            clone_repo(args.repo_url, args.tag, repo_dir)
-            apply_patches(repo_dir, patch_dir)
-            generate_api(repo_dir, args.generate_command)
-            copy_generated_api(repo_dir, args.generated_api_path, output_path)
+            process_repo(repo_dir, args.repo_url, args.tag, patch_dir, args.generate_command, args.generated_api_path, output_path)
 
     write_generation_metadata(output_path, args.tag, args.repo_url)
 
