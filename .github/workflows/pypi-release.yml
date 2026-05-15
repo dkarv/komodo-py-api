@@ -9,9 +9,8 @@
 name: Upload Python Package to PyPi
 
 on:
-  workflow_run:
-    workflows: ["Create Github Release"]
-    types: [completed]
+  release:
+    types: [published]
 
 permissions:
   contents: read
@@ -19,7 +18,6 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
