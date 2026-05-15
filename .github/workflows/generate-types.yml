@@ -1,9 +1,9 @@
 name: Generate Types
 
 on:
-  workflow_dispatch:
   push:
-  pull_request:
+    branches:
+      - '**' 
 
 permissions:
   contents: write
