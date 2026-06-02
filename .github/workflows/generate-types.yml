@@ -3,7 +3,9 @@ name: Generate Types
 on:
   push:
     branches:
-      - '**' 
+      - '**'
+  schedule:
+    - cron: '30 19 * * *'
 
 permissions:
   contents: write
