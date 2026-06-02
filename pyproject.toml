@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "komodo-api"
-version = "2.2.0-b"
+version = "2.2.0-beta"
 authors = [
   { name="David Punzet", email="punzet.david@gmail.com" },
 ]
