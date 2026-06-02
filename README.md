@@ -1,6 +1,8 @@
 # Komodo Py API
 
-_A system to build and deploy software across many servers_. [https://komo.do](https://komo.do)
+Python API for [Komodo](https://komo.do).
+
+## Usage
 
 ```sh
 pip install komodo-api
@@ -24,3 +26,6 @@ print(await api.read.listServers(ListServers()))
 print(await api.read.listStacks(ListStacks()))
 print(await api.read.listUpdates(ListUpdates()))
 ```
+
+## Build library
+
