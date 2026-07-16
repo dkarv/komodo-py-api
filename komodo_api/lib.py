@@ -1,16 +1,13 @@
+from pydantic.dataclasses import dataclass
+
 from .responses import (
     ExecuteApi,
     ReadApi,
-#    UserApi,
+    #    UserApi,
     WriteApi,
 )
 
 from .types import (
-#    AuthRequest,
-    ExecuteRequest,
-    ReadRequest,
-#    UserRequest,
-    WriteRequest,
     WsLoginMessage,
     WsLoginMessageJwt,
     WsLoginMessageApiKeys,
@@ -27,38 +24,44 @@ from .exceptions import KomodoException
 
 import aiohttp
 import asyncio
-import json
-from typing import Any, Callable, Dict, Optional, Union, TypeVar
-from enum import Enum
+from typing import Callable, Optional, TypeVar
 from pydantic import TypeAdapter
 import logging
 
 _logger = logging.getLogger(__name__)
 
+
+@dataclass
 class InitOptions:
     type_: str
 
 
+@dataclass
 class JwtInitOptions(InitOptions):
     type_: str = "jwt"
     jwt: str
 
     def __init__(self, jwt: str):
+        super().__init__()
         self.jwt = jwt
 
 
+@dataclass
 class ApiKeyInitOptions(InitOptions):
     type_: str = "api-key"
     key: str
     secret: str
 
     def __init__(self, key: str, secret: str):
+        super().__init__()
         self.key = key
         self.secret = secret
 
 
+@dataclass
 class CancelToken:
     def __init__(self):
+        super().__init__()
         self.cancelled = False
 
     def cancel(self):
@@ -66,7 +69,7 @@ class CancelToken:
 
 
 class KomodoClient:
-#    auth: AuthApi
+    #    auth: AuthApi
     read: ReadApi
     write: WriteApi
 #    user: UserApi
@@ -82,14 +85,16 @@ class KomodoClient:
         }
         if options.type_ == "jwt":
             headers["authorization"] = options.jwt
-            self._ws_login = WsLoginMessageJwt(params=WsLoginMessageJwtInner(jwt = options.jwt))
+            self._ws_login = WsLoginMessageJwt(
+                params=WsLoginMessageJwtInner(jwt=options.jwt))
         elif options.type_ == "api-key":
             headers["x-api-key"] = options.key
             headers["x-api-secret"] = options.secret
-            self._ws_login = WsLoginMessageApiKeys(params=WsLoginMessageApiKeysInner(key = options.key, secret = options.secret))
+            self._ws_login = WsLoginMessageApiKeys(
+                params=WsLoginMessageApiKeysInner(key=options.key, secret=options.secret))
         else:
             raise ValueError(f"Unknown InitOptions type: {options.type_}")
-        
+
         self._session = aiohttp.ClientSession(headers=headers)
 
 #        self.auth = AuthApi(self.request)
@@ -117,22 +122,24 @@ class KomodoClient:
         ) as response:
             if response.status == 200:
                 text = await response.text()
-                _logger.debug(f"Response: {text}")
+                _logger.debug("Response: %s", text)
                 try:
                     return TypeAdapter(clz).validate_json(text)
                 except Exception as e:
+                    _logger.error("Failed to parse response: %s\nResponse text: %s", e, text)
+                    # pylint: disable=broad-exception-raised
                     raise Exception(
                         f"Failed to parse response: {e}\nResponse text: {text}"
-                    )
+                    ) from e
             else:
                 error = await response.json()
-                _logger.warning(f"Api error {error}")
+                _logger.warning("Api error: %s", error)
                 raise KomodoException(error, response.status)
 
     async def poll_update_until_complete(self, update: Update, sleep_seconds: int = 1) -> Update:
         while not update.status == UpdateStatus.COMPLETE:
             await asyncio.sleep(sleep_seconds)
-            update = await self.read.getUpdate(GetUpdate(id = update.id.oid))
+            update = await self.read.getUpdate(GetUpdate(id=update.id.oid))
         return update
 
     async def core_version(self) -> str:
@@ -158,7 +165,8 @@ class KomodoClient:
                         if on_login:
                             on_login()
                     else:
-                        data = TypeAdapter(UpdateListItem).validate_json(msg.data)
+                        data = TypeAdapter(
+                            UpdateListItem).validate_json(msg.data)
                         on_update(data)
                 if msg.type in (aiohttp.WSMsgType.CLOSED, aiohttp.WSMsgType.ERROR):
                     break
@@ -179,8 +187,9 @@ class KomodoClient:
         while not cancel.cancelled:
             try:
                 await self.get_update_websocket(on_update, on_login, on_open, on_close)
+            # pylint: disable=broad-exception-caught
             except Exception as e:
-                print(f"WebSocket error: {e}")
+                _logger.error("WebSocket error: %s", e)
                 if retry:
                     await asyncio.sleep(retry_timeout_ms / 1000)
                 else:

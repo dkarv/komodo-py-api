@@ -32,6 +32,12 @@ jobs:
 
       - name: Generate client types
         run: ./scripts/generate.sh
+      
+      - name: pytest
+        run: pytest
+
+      - name: pylint
+        run: pylint komodo_api
 
       - name: Create pull request for generated komodo_api changes
         if: github.event_name != 'pull_request'
