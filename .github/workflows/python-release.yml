@@ -11,9 +11,9 @@ name: Upload Python Package to PyPi
 on:
   release:
     types: [published]
-#  workflow_run:
-#    workflows: ["Create Github Release"]
-#    types: [completed]
+  workflow_run:
+    workflows: ["Create Github Release"]
+    types: [completed]
   
 
 permissions:
