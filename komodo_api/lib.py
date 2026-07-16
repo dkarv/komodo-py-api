@@ -31,26 +31,23 @@ import logging
 _logger = logging.getLogger(__name__)
 
 
-@dataclass
 class InitOptions:
     type_: str
 
 
-@dataclass
 class JwtInitOptions(InitOptions):
-    type_: str = "jwt"
     jwt: str
+    type_: str = "jwt"
 
     def __init__(self, jwt: str):
         super().__init__()
         self.jwt = jwt
 
 
-@dataclass
 class ApiKeyInitOptions(InitOptions):
-    type_: str = "api-key"
     key: str
     secret: str
+    type_: str = "api-key"
 
     def __init__(self, key: str, secret: str):
         super().__init__()
