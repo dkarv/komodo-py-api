@@ -33,6 +33,10 @@ jobs:
       - name: Generate client types
         run: ./scripts/generate.sh
       
+      - name: Install Python dependencies
+        run: |
+          pip install -r test_requirements.txt
+      
       - name: pytest
         run: pytest
 
